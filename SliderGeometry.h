@@ -14,7 +14,7 @@ private:
     int subtract(int value, int armID);
 
 public:
-    explicit SliderGeometry(IAI_Message message);
+    explicit SliderGeometry(IAI_Message message = {});
     ModbusMessage convert();
 };
 

@@ -29,7 +29,6 @@ void Modbus::servoAxis(bool turnOn) {
 void Modbus::goHome() {
     int r[4][6];
     int rASCII[4][17];
-
     for (int i=0; i < 4; i++) {
         buffer = "0" + to_string(i+1) + "h " + servo[i].home;
         string sum = checksum(buffer, r[i], rASCII[i]);

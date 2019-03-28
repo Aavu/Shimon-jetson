@@ -6,6 +6,7 @@
 #define SHIMON_NOTEPOSITION_H
 
 #include <vector>
+#include <algorithm>
 
 using namespace std;
 
