@@ -6,11 +6,24 @@
 
 void UDP::handleReceive(const boost::system::error_code &error, size_t bytes_transferred) {
     if (error) {
-        std::cout << "Receive failed: " << error.message() << "\n";
+        cout << "Receive failed: " << error.message() << "\n";
         return;
     }
-    std::string msg = std::string(recv_buffer.begin(), recv_buffer.begin()+bytes_transferred);
-    cout << msg << endl;
+    string msg = std::string(recv_buffer.begin(), recv_buffer.begin() + bytes_transferred);
+    if (msg == "quit " || msg == "home ") {
+        cout << msg << endl;
+        unicodeMessage = msg;
+    } else {
+        splitMsg(msg);
+
+        // Slider Geometry Conversion
+        auto sliderGeometry = SliderGeometry(message);
+        auto fMessage = sliderGeometry.convert();
+
+        // MODBUS conversion
+        auto modbus = Modbus(fMessage);
+        unicodeMessage = modbus.unicodeMessage;
+    }
     startReceive();
 }
 

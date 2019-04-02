@@ -37,7 +37,7 @@ public:
     string ccMessage[4];
 
 public:
-    Modbus(ModbusMessage msg);
+    Modbus(ModbusMessage msg = {});
     void adjust(ModbusMessage &m);
     void convertToUnicodeString(bool withChecksum = true);
     void convertToHexString();

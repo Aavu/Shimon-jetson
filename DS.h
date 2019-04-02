@@ -44,7 +44,7 @@ struct IAI_Message {
     float acceleration;
     int Vmax;
     int hitVelocity;
-    float arrivalTime;
+    int arrivalTime;
 
     void print() {
         cout << armID << " " << Xtarget << " " << acceleration
