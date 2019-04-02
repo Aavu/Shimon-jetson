@@ -191,6 +191,8 @@ int Striker::Prepare(unsigned int *p_pErrorCode) {
     return lResult;
 }
 
+
+
 int Striker::Demo() {
 //    int lResult = MMC_SUCCESS;
 //    unsigned int lErrorCode = 0;
@@ -221,5 +223,12 @@ Striker::Striker(short armID, bool motorID) {
 int Striker::setHome(unsigned int *p_pErrorCode) {
     lResult = VCS_DefinePosition(g_pKeyHandle, g_usNodeId, 0, p_pErrorCode);
     return lResult;
+}
+
+int Striker::setCurrent(int value) {
+    if (VCS_ActivateProfilePositionMode(p_DeviceHandle, p_usNodeId, &p_rlErrorCode) == 0) {
+        LogError("VCS_ActivateProfilePositionMode", lResult, p_rlErrorCode);
+        lResult = MMC_FAILED;
+    }
 }
 

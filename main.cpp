@@ -42,20 +42,27 @@ IAI_Message splitMsg(string msg) {
     return message;
 }
 
+void strike(Striker striker) {
+
+}
+
 int main() {
     boost::asio::io_context io_context;
     int lResult = MMC_FAILED;
     unsigned int ulErrorCode = 0;
     vector<Striker> striker = {Striker(0, 0), Striker(0, 1)};
-    for (int i = 0; i < striker.size(); i++) {
-        if ((lResult = striker[i].lResult) != MMC_SUCCESS) {
+    for (auto &s : striker) {
+        if ((lResult = s.lResult) != MMC_SUCCESS) {
             return lResult;
         } else {
-            ulErrorCode = striker[i].ulErrorCode;
-            if ((lResult = striker[i].Prepare(&ulErrorCode)) != MMC_SUCCESS) {
-                striker[i].LogError("Prepare", lResult, ulErrorCode);
+            ulErrorCode = s.ulErrorCode;
+            if ((lResult = s.Prepare(&ulErrorCode)) != MMC_SUCCESS) {
+                s.LogError("Prepare", lResult, ulErrorCode);
                 return lResult;
             }
+
+            if ((lResult = s))
+            thread executeStriker(strike, s);
         }
     }
 

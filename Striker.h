@@ -84,6 +84,8 @@ public:
     void sleep_ms(unsigned int time);
 
     int setHome(unsigned int *p_pErrorCode);
+
+    int setCurrent(int value);
 };
 
 
