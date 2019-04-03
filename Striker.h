@@ -21,7 +21,6 @@
 #include <iomanip>
 
 using namespace std;
-//using namespace smf;
 
 #ifndef MMC_SUCCESS
 #define MMC_SUCCESS 0
@@ -47,10 +46,9 @@ public:
     string g_interfaceName;
     string g_portName;
     unsigned int g_baudrate = 0;
+    unsigned int *p_pErrorCode;
 
     unsigned int velocity = 6000;
-    int hit = 50;
-    int homePosition = -250;
     short armID;
     bool motorID;
     unsigned int ulErrorCode = 0;
@@ -60,32 +58,30 @@ public:
 
 public:
     Striker(short armID, bool motorID);
-
     void LogError(string functionName, int p_lResult, unsigned int p_ulErrorCode);
-
     void LogInfo(string message);
 
-    int OpenDevice(unsigned int *p_pErrorCode);
+    int OpenDevice();
 
-    int CloseDevice(unsigned int *p_pErrorCode);
-
+    int CloseDevice();
     void SetDefaultParameters();
 
-    int DemoProfilePositionMode(HANDLE p_DeviceHandle, unsigned short p_usNodeId, unsigned int &p_rlErrorCode);
-
-    int Demo();
-
-    int Prepare(unsigned int *p_pErrorCode);
-
+    int Prepare();
     unsigned int getAcceleration(unsigned int x);
-
     int getTargetPosition(unsigned int x);
-
     void sleep_ms(unsigned int time);
 
-    int setHome(unsigned int *p_pErrorCode);
+    int setHome();
 
-    int setCurrent(int value);
+    int setCurrent(short value);
+
+    int getID();
+
+    int hit(int m_velocity, int mode);
+
+    int moveToPosition(int position, unsigned int acc, bool absolute = 1);
+
+    short getCurrent(int m_velocity);
 };
 
 

@@ -5,7 +5,6 @@
 #include "NotePosition.h"
 #include "Serial.h"
 #include "Striker.h"
-//#include "UDP.h"
 #include <boost/asio.hpp>
 #include <boost/array.hpp>
 
@@ -42,184 +41,126 @@ IAI_Message splitMsg(string msg) {
     return message;
 }
 
-void strike(Striker striker) {
-
+void strike(Striker striker, int dly, int m_velocity, int mode) {
+    striker.sleep_ms(dly);
+    cout << "inside " << striker.getID() << endl;
+    striker.hit(m_velocity, mode);
+    striker.sleep_ms(dly);
+    striker.hit(m_velocity, mode);
+    striker.sleep_ms(dly);
+    striker.hit(m_velocity, mode);
+    striker.sleep_ms(dly);
+    striker.hit(m_velocity, mode);
+    striker.sleep_ms(dly);
 }
 
 int main() {
     boost::asio::io_context io_context;
+
+    //Init Strikers...
     int lResult = MMC_FAILED;
-    unsigned int ulErrorCode = 0;
-    vector<Striker> striker = {Striker(0, 0), Striker(0, 1)};
+    vector<Striker> striker = {Striker(0, 0)};
+    thread executeStriker[striker.size()];
+    int delay = 100;
     for (auto &s : striker) {
-        if ((lResult = s.lResult) != MMC_SUCCESS) {
+        if ((lResult = s.lResult) != 0) {
             return lResult;
         } else {
-            ulErrorCode = s.ulErrorCode;
-            if ((lResult = s.Prepare(&ulErrorCode)) != MMC_SUCCESS) {
-                s.LogError("Prepare", lResult, ulErrorCode);
+            if ((lResult = s.Prepare()) != 0) {
+                s.LogError("Prepare", lResult, *s.p_pErrorCode);
+                if (s.setCurrent(0) == 0) {
+                    s.LogError("setCurrent", lResult, *s.p_pErrorCode);
+                    lResult = MMC_FAILED;
+                    return lResult;
+                }
                 return lResult;
             }
 
-            if ((lResult = s))
-            thread executeStriker(strike, s);
+            executeStriker[0] = thread(strike, striker[0], delay, 127, 0);
         }
     }
 
-//    UDP udp{io_context};
-//    std::thread r([&] {
-//        try {
-//            io_context.run();
-//        } catch (const std::exception& ex) {
-//            std::cerr << ex.what() << std::endl;
-//        }
-//    });
 
-    udp::socket socket(io_context, udp::endpoint(address::from_string(IP_ADDRESS), UDP_PORT));
-//    while (true) {
-//        boost::array<char, 32> recv_buf;
-//        udp::endpoint remote_endpoint;
-//        boost::system::error_code error;
-//        int size = socket.receive_from(boost::asio::buffer(recv_buf, 32), remote_endpoint, 0, error);
-//        string msg = "";
-//        for (int i = 0; i < size; i++) {
-//            msg += recv_buf[i];
-//        }
-//        cout << msg << " size: " << size << endl;
-//        if (msg == "quit ") {
-//            cout << "Quitting..." << endl;
-//            break;
-//        } else if (msg == "home ") {
-//            cout << "Homing..." << endl;
-//        } else {
-//            auto message = splitMsg(msg);
-//            // Slider Geometry Conversion
-//            auto sliderGeometry = SliderGeometry(message);
-//            auto fMessage = sliderGeometry.convert();
-//            // MODBUS conversion
-//            auto modbus = Modbus(fMessage);
-//            cout << modbus.unicodeMessage << endl;
+
+//    udp::socket socket(io_context, udp::endpoint(address::from_string(IP_ADDRESS), UDP_PORT));
+//
+//    try {
+//        Serial serial("/dev/ttyUSB0",230400);
+//        cout << "Successfully connected to Shimon's arms!" << endl;
+//
+//        while(true) {
+//            boost::array<char, 32> recv_buf;
+//            udp::endpoint remote_endpoint;
+//            boost::system::error_code error;
+//            int size = socket.receive_from(boost::asio::buffer(recv_buf, 32), remote_endpoint, 0, error);
+//            string msg = "";
+//            for (int i = 0; i < size; i++) {
+//                msg += recv_buf[i];
+//            }
+//            cout << msg << " size: " << size << endl;
+//
+//            if (msg == "quit ") {
+//                cout << "Quitting..." << endl;
+//                auto modbus = Modbus();
+//                modbus.servoAxis(false);
+//                for (string i:modbus.ccMessage) {
+//                    cout << i;
+//                    serial.write(i);
+//                    sleep(100);
+//                }
+//                break;
+//            } else if (msg == "home ") {
+//                cout << "Homing..." << endl;
+//                auto modbus = Modbus();
+//                modbus.servoAxis(true);
+//                for (string i:modbus.ccMessage) {
+//                    cout << i;
+//                    serial.write(i);
+//                    sleep(100);
+//                }
+//                modbus.goHome();
+//                for (string i:modbus.ccMessage) {
+//                    cout << i;
+//                    serial.write(i);
+//                    sleep(100);
+//                }
+//            } else if (msg == "on ") {
+//                cout << "Switching servos on..." << endl;
+//                auto modbus = Modbus();
+//                modbus.servoAxis(true);
+//                for (string i:modbus.ccMessage) {
+//                    cout << i;
+//                    serial.write(i);
+//                    sleep(100);
+//                }
+//            } else if (msg == "off ") {
+//                cout << "Switching servos off..." << endl;
+//                auto modbus = Modbus();
+//                modbus.servoAxis(false);
+//                for (string i:modbus.ccMessage) {
+//                    cout << i;
+//                    serial.write(i);
+//                    sleep(100);
+//                }
+//            } else {
+//                auto message = splitMsg(msg);
+//                // Slider Geometry Conversion
+//                auto sliderGeometry = SliderGeometry(message);
+//                auto fMessage = sliderGeometry.convert();
+//                fMessage.print();
+//                // MODBUS conversion
+//                auto modbus = Modbus(fMessage);
+//                cout << modbus.unicodeMessage << endl;
+//                serial.write(modbus.unicodeMessage);
+//            }
 //        }
 //
+//    } catch(boost::system::system_error& e) {
+//        cout << "Error: " << e.what() << endl;
 //    }
 
-
-    try {
-        Serial serial("/dev/ttyUSB0",230400);
-        cout << "Successfully connected to Shimon's arms!" << endl;
-
-
-        while(true) {
-            boost::array<char, 32> recv_buf;
-            udp::endpoint remote_endpoint;
-            boost::system::error_code error;
-            int size = socket.receive_from(boost::asio::buffer(recv_buf, 32), remote_endpoint, 0, error);
-            string msg = "";
-            for (int i = 0; i < size; i++) {
-                msg += recv_buf[i];
-            }
-            cout << msg << " size: " << size << endl;
-
-            if (msg == "quit ") {
-                cout << "Quitting..." << endl;
-                auto modbus = Modbus();
-                modbus.servoAxis(false);
-                for (string i:modbus.ccMessage) {
-                    cout << i;
-                    serial.write(i);
-                    sleep(100);
-                }
-                break;
-            } else if (msg == "home ") {
-                cout << "Homing..." << endl;
-                auto modbus = Modbus();
-                modbus.servoAxis(true);
-                for (string i:modbus.ccMessage) {
-                    cout << i;
-                    serial.write(i);
-                    sleep(100);
-                }
-                modbus.goHome();
-                for (string i:modbus.ccMessage) {
-                    cout << i;
-                    serial.write(i);
-                    sleep(100);
-                }
-            } else if (msg == "on ") {
-                cout << "Switching servos on..." << endl;
-                auto modbus = Modbus();
-                modbus.servoAxis(true);
-                for (string i:modbus.ccMessage) {
-                    cout << i;
-                    serial.write(i);
-                    sleep(100);
-                }
-            } else if (msg == "off ") {
-                cout << "Switching servos off..." << endl;
-                auto modbus = Modbus();
-                modbus.servoAxis(false);
-                for (string i:modbus.ccMessage) {
-                    cout << i;
-                    serial.write(i);
-                    sleep(100);
-                }
-            } else {
-                auto message = splitMsg(msg);
-                // Slider Geometry Conversion
-                auto sliderGeometry = SliderGeometry(message);
-                auto fMessage = sliderGeometry.convert();
-                fMessage.print();
-                // MODBUS conversion
-                auto modbus = Modbus(fMessage);
-                cout << modbus.unicodeMessage << endl;
-                serial.write(modbus.unicodeMessage);
-            }
-
-
-//            if (udp.unicodeMessage != udp.prevUnicodeMsg) {
-//                if (udp.unicodeMessage == "quit ") {
-//                    cout << "quitting" << endl;
-////                    modbus.servoAxis(false);
-////                    for (string i:modbus.ccMessage) {
-////                        cout << i;
-////                        serial.write(i);
-////                        sleep(100);
-////                    }
-//                    break;
-//                }
-//                if (udp.unicodeMessage == "home ") {
-//                    cout << "Homing..." << endl;
-////                    modbus.servoAxis(true);
-////                    for (string i:modbus.ccMessage) {
-////                        cout << i;
-////                        serial.write(i);
-////                        sleep(100);
-////                    }
-////                    modbus.goHome();
-////                    for (string i:modbus.ccMessage) {
-////                        cout << i;
-////                        serial.write(i);
-////                        sleep(100);
-////                    }
-//                } else {
-//                    cout << udp.unicodeMessage << endl;
-////                serial.write(udp.unicodeMessage);
-//                }
-//            }
-//            udp.prevUnicodeMsg = udp.unicodeMessage;
-//        }
-        }
-
-    } catch(boost::system::system_error& e)
-    {
-        cout << "Error: " << e.what() << endl;
-        return 1;
-    }
-//
-//    r.join();
-////    auto notePosition = NotePosition();
-////    cout << notePosition.isWhiteKey(12) << endl;
-
+    executeStriker[0].join();
+    striker[0].CloseDevice();
     return 0;
 }
 

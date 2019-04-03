@@ -104,3 +104,91 @@ string parseHexToString(const string& hexValue) {
     s_val = ":"+s_val+"\r\n";
     return s_val;
 }
+
+
+UDP udp{io_context};
+std::thread r([&] {
+    try {
+        io_context.run();
+    } catch (const std::exception &ex) {
+        std::cerr << ex.what() << std::endl;
+    }
+});
+
+while (true) {
+boost::array<char, 32> recv_buf;
+udp::endpoint remote_endpoint;
+boost::system::error_code error;
+int size = socket.receive_from(boost::asio::buffer(recv_buf, 32), remote_endpoint, 0, error);
+string msg = "";
+for (
+int i = 0;
+i<size;
+i++) {
+msg += recv_buf[i];
+}
+cout << msg << " size: " << size <<
+endl;
+if (msg == "quit ") {
+cout << "Quitting..." <<
+endl;
+break;
+} else if (msg == "home ") {
+cout << "Homing..." <<
+endl;
+} else {
+auto message = splitMsg(msg);
+// Slider Geometry Conversion
+auto sliderGeometry = SliderGeometry(message);
+auto fMessage = sliderGeometry.convert();
+// MODBUS conversion
+auto modbus = Modbus(fMessage);
+cout << modbus.unicodeMessage <<
+endl;
+}
+
+}
+
+if (udp.unicodeMessage != udp.prevUnicodeMsg) {
+if (udp.unicodeMessage == "quit ") {
+cout << "quitting" <<
+endl;
+//                    modbus.servoAxis(false);
+//                    for (string i:modbus.ccMessage) {
+//                        cout << i;
+//                        serial.write(i);
+//                        sleep(100);
+//                    }
+break;
+}
+if (udp.unicodeMessage == "home ") {
+cout << "Homing..." <<
+endl;
+//                    modbus.servoAxis(true);
+//                    for (string i:modbus.ccMessage) {
+//                        cout << i;
+//                        serial.write(i);
+//                        sleep(100);
+//                    }
+//                    modbus.goHome();
+//                    for (string i:modbus.ccMessage) {
+//                        cout << i;
+//                        serial.write(i);
+//                        sleep(100);
+//                    }
+} else {
+cout << udp.unicodeMessage <<
+endl;
+//                serial.write(udp.unicodeMessage);
+}
+}
+udp.
+prevUnicodeMsg = udp.unicodeMessage;
+
+r.
+
+join();
+
+auto notePosition = NotePosition();
+cout << notePosition.isWhiteKey(12) <<
+endl;
