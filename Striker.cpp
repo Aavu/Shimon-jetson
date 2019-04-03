@@ -106,7 +106,7 @@ int Striker::Prepare() {
         lResult = MMC_FAILED;
     }
 
-    if (lResult == 0) {
+    if (lResult == MMC_SUCCESS) {
         if (oIsFault) {
             stringstream msg;
             msg << "clear fault, node = '" << g_usNodeId << "'";
@@ -117,7 +117,7 @@ int Striker::Prepare() {
             }
         }
 
-        if (lResult == 0) {
+        if (lResult == MMC_SUCCESS) {
             BOOL oIsEnabled = 0;
 
             if (VCS_GetEnableState(g_pKeyHandle, g_usNodeId, &oIsEnabled, p_pErrorCode) == 0) {
@@ -125,7 +125,7 @@ int Striker::Prepare() {
                 lResult = MMC_FAILED;
             }
 
-            if (lResult == 0) {
+            if (lResult == MMC_SUCCESS) {
                 if (!oIsEnabled) {
                     if (VCS_SetEnableState(g_pKeyHandle, g_usNodeId, p_pErrorCode) == 0) {
                         LogError("VCS_SetEnableState", lResult, *p_pErrorCode);
@@ -134,6 +134,13 @@ int Striker::Prepare() {
                         LogError("setHome", lResult, *p_pErrorCode);
                         lResult = MMC_FAILED;
                     }
+                }
+            }
+
+            if (lResult == MMC_SUCCESS) {
+                if (moveToPosition(-150, 5000) != MMC_SUCCESS) {
+                    LogError("moveToPosition", lResult, *p_pErrorCode);
+                    lResult = MMC_FAILED;
                 }
             }
         }
@@ -229,7 +236,6 @@ int Striker::hit(int m_velocity, int mode) {
         if (moveToPosition(position, acc) != MMC_SUCCESS) {
             LogError("moveToPosition", lResult, *p_pErrorCode);
             lResult = MMC_FAILED;
-            return lResult;
         }
 
     }
