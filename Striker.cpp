@@ -14,11 +14,11 @@ void Striker::sleep_ms(unsigned int time) {
 }
 
 unsigned int Striker::getAcceleration(unsigned int x) {
-    return (((x * -.714) - 59.29) * -27.78) + 833.33;
+    return (unsigned int) round((((x * -.714) - 59.29) * -27.78) + 833.33);
 }
 
 int Striker::getTargetPosition(unsigned int x) {
-    return -((x * .714) + 59.29);
+    return (int) round(-((x * .714) + 59.29));
 }
 
 void Striker::LogError(string functionName, int p_lResult, unsigned int p_ulErrorCode) {
@@ -56,7 +56,7 @@ int Striker::OpenDevice() {
 
     g_pKeyHandle = VCS_OpenDevice(pDeviceName, pProtocolStackName, pInterfaceName, pPortName, p_pErrorCode);
 
-    if (g_pKeyHandle != 0 && *p_pErrorCode == 0) {
+    if (g_pKeyHandle != nullptr && *p_pErrorCode == 0) {
         unsigned int lBaudrate = 0;
         unsigned int lTimeout = 0;
 
@@ -70,7 +70,7 @@ int Striker::OpenDevice() {
             }
         }
     } else {
-        g_pKeyHandle = 0;
+        g_pKeyHandle = nullptr;
     }
 
     delete[]pDeviceName;
@@ -206,7 +206,7 @@ int Striker::setCurrent(short value) {
     return lResult;
 }
 
-int Striker::hit(int m_velocity, int mode) {
+int Striker::hit(unsigned int m_velocity, int mode) {
     lResult = MMC_SUCCESS;
     if (mode == 0) {
         short current = getCurrent(m_velocity);

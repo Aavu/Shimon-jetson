@@ -4,10 +4,11 @@
 
 #include "HitDelay.h"
 
-int HitDelay::hitDelay(TimedMessage m) {
-    int delayTime = m.arrivalTime - getSystemTime();
+int HitDelay::hitDelay(IAI_Message m) {
+//    auto delayTime = (unsigned int) m.arrivalTime - getSystemTime();
+//    delayTime = 465;
     auto notePosition = NotePosition();
-    usleep(delayTime);
+//    usleep(delayTime);
     if (notePosition.isWhiteKey(m.Xtarget)) {
         return (((m.armID - 1) * 2) + 1);
     } else {

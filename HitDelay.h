@@ -14,7 +14,7 @@ class HitDelay {
 public:
     unsigned int delay;
     int getSystemTime();
-    int hitDelay(TimedMessage m);
+    int hitDelay(IAI_Message m);
 
 };
 

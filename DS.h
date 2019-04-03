@@ -5,6 +5,9 @@
 #include <string>
 #include <queue>
 #include <iostream>
+#include "Globals.h"
+#include <math.h>
+#include <algorithm>
 
 #ifndef MODBUS_DS_H
 #define MODBUS_DS_H
@@ -41,9 +44,9 @@ struct ModbusMessageHex {
 struct IAI_Message {
     int armID;
     int Xtarget;
-    float acceleration;
+    double acceleration;
     int Vmax;
-    int hitVelocity;
+    unsigned int hitVelocity;
     int arrivalTime;
 
     void print() {
@@ -54,16 +57,25 @@ struct IAI_Message {
 
 struct TimedMessage {
     int armID;
-    long time;
+    double time;
     int Xtarget;
-    float acceleration;
+    double acceleration;
     int Vmax;
-    int hitVelocity;
-    int arrivalTime;
+    unsigned int hitVelocity;
+    double arrivalTime;
 
     void print() {
         cout << armID << " " << time << " " << Xtarget << " " << acceleration
              << " " << Vmax << " " << hitVelocity << " " << arrivalTime << endl;
+    }
+};
+
+struct Interval {
+    float left;
+    float right;
+
+    void print() {
+        cout << "interval: " << left << " " << right << endl;
     }
 };
 

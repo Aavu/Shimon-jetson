@@ -39,7 +39,7 @@ public:
     typedef void *HANDLE;
     typedef int BOOL;
 
-    void *g_pKeyHandle = 0;
+    void *g_pKeyHandle = nullptr;
     unsigned short g_usNodeId = 1;
     string g_deviceName;
     string g_protocolStackName;
@@ -77,7 +77,7 @@ public:
 
     int getID();
 
-    int hit(int m_velocity, int mode);
+    int hit(unsigned int m_velocity, int mode);
 
     int moveToPosition(int position, unsigned int acc, bool absolute = 1);
 
