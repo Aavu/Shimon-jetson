@@ -15,20 +15,24 @@ void Striker::sleep_ms(unsigned int time) {
 
 unsigned int Striker::getAcceleration(unsigned int x) {
 //    return (unsigned int) round((((x * -.714) - 59.29) * -27.78) + 833.33);
-    return (int) round((x * -4.762 - 95.238) * -5.83 + 916.67);
+    if (strikerMode == Normal) return (int) round((x * -4.762 - 95.238) * -5.83 + 916.67);
+    if (strikerMode == Medium) return (int) round((x * -1.35 - 78.65) * -29.4 - 1352.94);
+    return 0;
 }
 
 int Striker::getTargetPosition(unsigned int x) {
 //    return (int) round(-((x * .714) + 59.29));
-    return (int) round(x * -4.762 - 95.238);
+    if (strikerMode == Normal) return (int) round(x * -4.762 - 95.238);
+    if (strikerMode == Medium) return (int) round(x * -1.35 - 78.65);
+    return 0;
 }
 
-void Striker::LogError(string functionName, int p_lResult, unsigned int p_ulErrorCode) {
+void Striker::LogError(const string &functionName, int p_lResult, unsigned int p_ulErrorCode) {
     cerr << functionName << " failed arm " << armID << ", motor " << motorID << " (result=" << p_lResult
          << ", errorCode=0x" << std::hex << p_ulErrorCode << ")" << endl;
 }
 
-void Striker::LogInfo(string message) {
+void Striker::LogInfo(const string &message) {
     cout << message << endl;
 }
 
@@ -44,7 +48,7 @@ void Striker::SetDefaultParameters() {
 }
 
 int Striker::OpenDevice() {
-    int lResult = MMC_FAILED;
+    lResult = MMC_FAILED;
 
     char *pDeviceName = new char[255];
     char *pProtocolStackName = new char[255];
@@ -86,7 +90,7 @@ int Striker::OpenDevice() {
 }
 
 int Striker::CloseDevice() {
-    int lResult = MMC_FAILED;
+    lResult = MMC_FAILED;
 
     LogInfo("Close device");
 
@@ -210,9 +214,36 @@ int Striker::setCurrent(short value) {
     return lResult;
 }
 
-int Striker::hit(unsigned int m_velocity, int mode) {
+int Striker::tremolo(int m_velocity) {
+    while (strikerMode == Tremolo) {
+        lResult = MMC_SUCCESS;
+        int current = getCurrent(m_velocity);
+        if (setCurrent(current) != MMC_SUCCESS) {
+            LogError("setCurrent", lResult, *p_pErrorCode);
+            lResult = MMC_FAILED;
+            return lResult;
+        }
+
+        sleep_ms(5);
+
+        if (setCurrent(-current) != MMC_SUCCESS) {
+            LogError("setCurrent", lResult, *p_pErrorCode);
+            lResult = MMC_FAILED;
+            return lResult;
+        }
+
+        sleep_ms(15);
+
+        lResult = waitTillHit(30);
+    }
+    return lResult;
+}
+
+int Striker::hit(unsigned int m_velocity, StrikerModes mode) {
     lResult = MMC_SUCCESS;
-    if (mode == 0) {
+    strikerMode = mode;
+
+    if (strikerMode == Normal || strikerMode == Medium) {
         int current = getCurrent(m_velocity);
         if (setCurrent(current) != MMC_SUCCESS) {
             LogError("setCurrent", lResult, *p_pErrorCode);
@@ -222,17 +253,7 @@ int Striker::hit(unsigned int m_velocity, int mode) {
 
         sleep_ms(20);
 
-        while (true) {
-            int velocityIs = 6000;
-            if (VCS_GetVelocityIs(g_pKeyHandle, g_usNodeId, &velocityIs, p_pErrorCode) == 0) {
-                LogError("VCS_GetVelocityIs", lResult, *p_pErrorCode);
-                lResult = MMC_FAILED;
-                return lResult;
-            }
-            if (velocityIs < 20) {
-                break;
-            }
-        }
+        lResult = waitTillHit(20);
 
         unsigned int acc = getAcceleration(m_velocity);
         int position = getTargetPosition(m_velocity);
@@ -242,6 +263,8 @@ int Striker::hit(unsigned int m_velocity, int mode) {
             lResult = MMC_FAILED;
         }
 
+    } else if (strikerMode == Tremolo) { // tremolo
+        thread{pTremolo, m_velocity}.detach();
     }
     return lResult;
 }
@@ -278,11 +301,23 @@ int Striker::moveToPosition(int position, unsigned int acc, bool absolute) {
 }
 
 int Striker::getCurrent(int m_velocity) {
-    return round(((m_velocity * -4.76) - 95.24) * -7.33 + 133.33);
+    if (strikerMode == Normal) return round(((m_velocity * -4.76) - 95.24) * -7.33 + 133.33);
+    if (strikerMode == Medium) return round(((m_velocity * -1.35) - 78.65) * -29.4 - 1352.94);
+    if (strikerMode == Tremolo) return round((m_velocity * -71.249) - 928.57);
+    return 0;
 }
 
-//int Striker::getCurrent(int m_velocity) {
-//    return ((m_velocity * -.714) - 59.29) * -44.44 + 333.33;
-////    return round(((m_velocity*-4.76) -95.24)* -7.33 + 133.33);
-//}
+int Striker::waitTillHit(int velocityThreshold) {
+    while (true) {
+        int velocityIs = 6000;
+        if (VCS_GetVelocityIs(g_pKeyHandle, g_usNodeId, &velocityIs, p_pErrorCode) == 0) {
+            LogError("VCS_GetVelocityIs", lResult, *p_pErrorCode);
+            lResult = MMC_FAILED;
+            return lResult;
+        }
+        if (velocityIs < velocityThreshold) {
+            return MMC_SUCCESS;
+        }
+    }
+}
 

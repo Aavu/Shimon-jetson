@@ -1,4 +1,4 @@
-#include <stdlib.h>
+#include <cstdlib>
 #include <future>
 #include "SliderGeometry.h"
 #include "DS.h"
@@ -59,11 +59,8 @@ int prepareStrikers(vector<Striker> strikers, int &lResult) {
     return lResult;
 }
 
-void strike(Striker striker, unsigned int delay, unsigned int m_velocity, int mode = 0) {
-    cout << "here..." << endl;
-//    striker.sleep_ms(delay);
+void strike(Striker striker, unsigned int m_velocity, StrikerModes mode = Normal) {
     striker.hit(m_velocity, mode);
-    return;
 }
 
 int main() {
@@ -77,8 +74,6 @@ int main() {
         //Init Strikers...
         int lResult = MMC_SUCCESS;
         vector<Striker> striker = {Striker(0, 0)};
-
-        unsigned int delay = 465;
 
         if ((lResult = prepareStrikers(striker, lResult)) != MMC_SUCCESS) {
             return lResult;
@@ -100,7 +95,7 @@ int main() {
                 cout << "Quitting..." << endl;
                 auto modbus = Modbus();
                 modbus.servoAxis(false);
-                for (string i:modbus.ccMessage) {
+                for (const string &i:modbus.ccMessage) {
 //                    cout << i;
                     serial.write(i);
                     sleep(100);
@@ -113,14 +108,14 @@ int main() {
                 }
                 auto modbus = Modbus();
                 modbus.servoAxis(true);
-                for (string i:modbus.ccMessage) {
+                for (const string &i:modbus.ccMessage) {
                     cout << i;
                     serial.write(i);
                     sleep(100);
                 }
 
                 modbus.goHome();
-                for (string i:modbus.ccMessage) {
+                for (const string &i:modbus.ccMessage) {
                     cout << i;
                     serial.write(i);
                     sleep(100);
@@ -130,7 +125,7 @@ int main() {
                 cout << "Switching servos on..." << endl;
                 auto modbus = Modbus();
                 modbus.servoAxis(true);
-                for (string i:modbus.ccMessage) {
+                for (const string &i:modbus.ccMessage) {
 //                    cout << i;
                     serial.write(i);
                     sleep(100);
@@ -144,7 +139,7 @@ int main() {
                 cout << "Switching servos off..." << endl;
                 auto modbus = Modbus();
                 modbus.servoAxis(false);
-                for (string i:modbus.ccMessage) {
+                for (const string &i:modbus.ccMessage) {
                     cout << i;
                     serial.write(i);
                     sleep(100);
@@ -158,16 +153,14 @@ int main() {
                     fMessage.print();
                     // MODBUS conversion
                     auto modbus = Modbus(fMessage);
-                    //striker
-                    auto armID = HitDelay().hitDelay(message);
                     //send commands
                     cout << modbus.unicodeMessage << endl;
                     serial.write(modbus.unicodeMessage);
                 } else {
                     int i = 0;
                     stringstream ssin(msg);
-                    string arr[2];
-                    while (ssin.good() && i < 2) {
+                    string arr[3]; //TODO include modes in max UDP message
+                    while (ssin.good() && i < 3) {
                         ssin >> arr[i];
                         ++i;
                     }
@@ -175,10 +168,11 @@ int main() {
                     auto armID = stoi(arr[0]);
 
                     auto vel = stoi(arr[1]);
-                    //For now as we have only 2 motors
+                    //For now as we have only 1 motor
+                    int mode = stoi(arr[2]);
                     if (armID == 1) {
                         cout << armID << " " << vel << endl;
-                        thread{strike, striker[0], delay, vel, 0}.detach();
+                        thread{strike, striker[armID], vel, mode}.detach();
                     }
                 }
             }

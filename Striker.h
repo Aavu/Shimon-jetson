@@ -34,6 +34,10 @@ using namespace std;
 #define MMC_MAX_LOG_MSG_SIZE 512
 #endif
 
+enum StrikerModes {
+    Normal, Medium, Tremolo
+};
+
 class Striker {
 public:
     typedef void *HANDLE;
@@ -46,7 +50,7 @@ public:
     string g_interfaceName;
     string g_portName;
     unsigned int g_baudrate = 0;
-    unsigned int *p_pErrorCode;
+    unsigned int *p_pErrorCode = nullptr;
 
     unsigned int velocity = 6000;
     short armID;
@@ -55,11 +59,14 @@ public:
     int lResult = MMC_FAILED;
     vector<unsigned int> midi_velocity;
     vector<unsigned int> timeInterval;
+    StrikerModes strikerMode = Normal;
 
 public:
     Striker(short armID, bool motorID);
-    void LogError(string functionName, int p_lResult, unsigned int p_ulErrorCode);
-    void LogInfo(string message);
+
+    void LogError(const string &functionName, int p_lResult, unsigned int p_ulErrorCode);
+
+    static void LogInfo(const string &message);
 
     int OpenDevice();
 
@@ -69,7 +76,8 @@ public:
     int Prepare();
     unsigned int getAcceleration(unsigned int x);
     int getTargetPosition(unsigned int x);
-    void sleep_ms(unsigned int time);
+
+    static void sleep_ms(unsigned int time);
 
     int setHome();
 
@@ -77,11 +85,20 @@ public:
 
     int getID();
 
-    int hit(unsigned int m_velocity, int mode);
+    int hit(unsigned int m_velocity, StrikerModes mode);
 
     int moveToPosition(int position, unsigned int acc, bool absolute = 1);
 
     int getCurrent(int m_velocity);
+
+private:
+    int tremolo(int m_velocity);
+
+    typedef int (Striker::*tremoloFn)(int m_velocity);
+
+    tremoloFn pTremolo = &Striker::tremolo;
+
+    int waitTillHit(int velocityThreshold = 20);
 };
 
 

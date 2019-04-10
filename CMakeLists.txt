@@ -8,7 +8,7 @@ set(SOURCE_FILES main.cpp Serial.h SliderGeometry.cpp SliderGeometry.h DS.h Modb
 
 add_executable(Shimon ${SOURCE_FILES})
 
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} +g -Wall")
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wall")
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Wall")
 
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
