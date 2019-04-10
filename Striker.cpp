@@ -14,11 +14,13 @@ void Striker::sleep_ms(unsigned int time) {
 }
 
 unsigned int Striker::getAcceleration(unsigned int x) {
-    return (unsigned int) round((((x * -.714) - 59.29) * -27.78) + 833.33);
+//    return (unsigned int) round((((x * -.714) - 59.29) * -27.78) + 833.33);
+    return (int) round((x * -4.762 - 95.238) * -5.83 + 916.67);
 }
 
 int Striker::getTargetPosition(unsigned int x) {
-    return (int) round(-((x * .714) + 59.29));
+//    return (int) round(-((x * .714) + 59.29));
+    return (int) round(x * -4.762 - 95.238);
 }
 
 void Striker::LogError(string functionName, int p_lResult, unsigned int p_ulErrorCode) {
@@ -35,7 +37,9 @@ void Striker::SetDefaultParameters() {
     g_deviceName = "EPOS4";
     g_protocolStackName = "MAXON SERIAL V2";
     g_interfaceName = "USB";
-    g_portName = "USB0";
+
+    g_portName = "USB" + to_string(getID());
+    cout << g_portName << endl;
     g_baudrate = 1000000;
 }
 
@@ -209,7 +213,7 @@ int Striker::setCurrent(short value) {
 int Striker::hit(unsigned int m_velocity, int mode) {
     lResult = MMC_SUCCESS;
     if (mode == 0) {
-        short current = getCurrent(m_velocity);
+        int current = getCurrent(m_velocity);
         if (setCurrent(current) != MMC_SUCCESS) {
             LogError("setCurrent", lResult, *p_pErrorCode);
             lResult = MMC_FAILED;
@@ -245,35 +249,40 @@ int Striker::hit(unsigned int m_velocity, int mode) {
 int Striker::moveToPosition(int position, unsigned int acc, bool absolute) {
     lResult = MMC_SUCCESS;
     if (VCS_ActivateProfilePositionMode(g_pKeyHandle, g_usNodeId, p_pErrorCode) == 0) {
-        LogError("VCS_ActivateProfilePositionMode", lResult, *p_pErrorCode);
         lResult = MMC_FAILED;
+        LogError("VCS_ActivateProfilePositionMode", lResult, *p_pErrorCode);
     } else {
         stringstream msg;
         msg << "move to position = " << position << ", acc = " << acc;
         LogInfo(msg.str());
 
         if (VCS_SetPositionProfile(g_pKeyHandle, g_usNodeId, velocity, acc, acc, p_pErrorCode) == 0) {
-            LogError("VCS_SetPositionProfile", lResult, *p_pErrorCode);
             lResult = MMC_FAILED;
+            LogError("VCS_SetPositionProfile", lResult, *p_pErrorCode);
             return lResult;
         }
 
         if (VCS_MoveToPosition(g_pKeyHandle, g_usNodeId, position, absolute, 1, p_pErrorCode) == 0) {
-            LogError("VCS_MoveToPosition", lResult, *p_pErrorCode);
             lResult = MMC_FAILED;
+            LogError("VCS_MoveToPosition", lResult, *p_pErrorCode);
             return lResult;
         }
 
-        if (VCS_WaitForTargetReached(g_pKeyHandle, g_usNodeId, 500, p_pErrorCode) == 0) {
-            LogError("VCS_WaitForTargetReached", lResult, *p_pErrorCode);
+        if (VCS_WaitForTargetReached(g_pKeyHandle, g_usNodeId, 1000, p_pErrorCode) == 0) {
             lResult = MMC_FAILED;
+            LogError("VCS_WaitForTargetReached", lResult, *p_pErrorCode);
             return lResult;
         }
     }
     return lResult;
 }
 
-short Striker::getCurrent(int m_velocity) {
-    return ((m_velocity * -.714) - 59.29) * -44.44 + 333.33;
+int Striker::getCurrent(int m_velocity) {
+    return round(((m_velocity * -4.76) - 95.24) * -7.33 + 133.33);
 }
+
+//int Striker::getCurrent(int m_velocity) {
+//    return ((m_velocity * -.714) - 59.29) * -44.44 + 333.33;
+////    return round(((m_velocity*-4.76) -95.24)* -7.33 + 133.33);
+//}
 

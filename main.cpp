@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <future>
 #include "SliderGeometry.h"
 #include "DS.h"
 #include "Modbus.h"
@@ -10,7 +11,8 @@
 #include "HitDelay.h"
 
 #define IP_ADDRESS "192.168.2.2"
-#define UDP_PORT 7001
+//#define IP_ADDRESS "127.0.0.1"
+#define UDP_PORT 7002
 
 #define DATA_SIZE 32
 
@@ -22,25 +24,23 @@ void sleep(int ms) {
     usleep((useconds_t) ms*1000);
 }
 
-string val;
-
 IAI_Message splitMsg(const string &msg) {
     int i = 0;
     stringstream ssin(msg);
-    string arr[6];
-    while (ssin.good() && i < 6) {
+    string arr[7];
+    while (ssin.good() && i < 7) {
         ssin >> arr[i];
         ++i;
     }
 
     IAI_Message message = {};
 
-    message.armID = stoi(arr[0]);
-    message.Xtarget = stoi(arr[1]);
-    message.acceleration = stof(arr[2]);
-    message.Vmax = stoi(arr[3]);
-    message.hitVelocity = (unsigned int) stoi(arr[4]);
-    message.arrivalTime = stoi(arr[5]);
+    message.armID = stoi(arr[1]);
+    message.Xtarget = stoi(arr[2]);
+    message.acceleration = stof(arr[3]);
+    message.Vmax = stoi(arr[4]);
+    message.hitVelocity = stoi(arr[5]);
+    message.arrivalTime = stoi(arr[6]);
     return message;
 }
 
@@ -60,63 +60,63 @@ int prepareStrikers(vector<Striker> strikers, int &lResult) {
 }
 
 void strike(Striker striker, unsigned int delay, unsigned int m_velocity, int mode = 0) {
-    striker.sleep_ms(delay);
+    cout << "here..." << endl;
+//    striker.sleep_ms(delay);
     striker.hit(m_velocity, mode);
+    return;
 }
 
 int main() {
     boost::asio::io_context io_context;
 
-    //Init Strikers...
-    int lResult = MMC_FAILED;
-    vector<Striker> striker = {Striker(0, 0)};
-    thread executeStriker[striker.size()];
-
-    unsigned int delay = 465;
-
-    if ((lResult = prepareStrikers(striker, lResult)) != MMC_SUCCESS) {
-        return lResult;
-    }
-
     udp::socket socket(io_context, udp::endpoint(address::from_string(IP_ADDRESS), UDP_PORT));
 
     try {
-        Serial serial("/dev/ttyUSB0", 230400);
+        Serial serial("/dev/ttyUSB1", 230400);
         cout << "Successfully connected to Shimon's arms!" << endl;
+        //Init Strikers...
+        int lResult = MMC_SUCCESS;
+        vector<Striker> striker = {Striker(0, 0)};
 
+        unsigned int delay = 465;
+
+        if ((lResult = prepareStrikers(striker, lResult)) != MMC_SUCCESS) {
+            return lResult;
+        }
+
+        cout << "Successfully connected to Strikers!" << endl;
         while (true) {
             boost::array<char, DATA_SIZE> recv_buf;
             udp::endpoint remote_endpoint;
             boost::system::error_code error;
             auto size = socket.receive_from(boost::asio::buffer(recv_buf, DATA_SIZE), remote_endpoint, 0, error);
             string msg;
+            char id = recv_buf[0];
             for (int i = 0; i < size; i++) {
                 msg += recv_buf[i];
             }
             cout << msg << " size: " << size << endl;
-
             if (msg == "quit ") {
                 cout << "Quitting..." << endl;
                 auto modbus = Modbus();
                 modbus.servoAxis(false);
                 for (string i:modbus.ccMessage) {
-                    cout << i;
+//                    cout << i;
                     serial.write(i);
                     sleep(100);
                 }
                 break;
             } else if (msg == "home ") {
                 cout << "Homing..." << endl;
+                if ((lResult = prepareStrikers(striker, lResult)) != MMC_SUCCESS) {
+                    return lResult;
+                }
                 auto modbus = Modbus();
                 modbus.servoAxis(true);
                 for (string i:modbus.ccMessage) {
                     cout << i;
                     serial.write(i);
                     sleep(100);
-                }
-
-                if ((lResult = prepareStrikers(striker, lResult)) != MMC_SUCCESS) {
-                    return lResult;
                 }
 
                 modbus.goHome();
@@ -131,7 +131,7 @@ int main() {
                 auto modbus = Modbus();
                 modbus.servoAxis(true);
                 for (string i:modbus.ccMessage) {
-                    cout << i;
+//                    cout << i;
                     serial.write(i);
                     sleep(100);
                 }
@@ -150,34 +150,46 @@ int main() {
                     sleep(100);
                 }
             } else {
-                auto message = splitMsg(msg);
-                // Slider Geometry Conversion
-                auto sliderGeometry = SliderGeometry(message);
-                auto fMessage = sliderGeometry.convert();
-                fMessage.print();
-                // MODBUS conversion
-                auto modbus = Modbus(fMessage);
-                //striker
-                auto armID = HitDelay().hitDelay(message);
-                //send commands
-                cout << modbus.unicodeMessage << endl;
-                serial.write(modbus.unicodeMessage);
-                //For now as we have only 1 motor
-                if (armID < striker.size()) {
-                    executeStriker[armID] = thread(strike, striker[armID], delay, message.hitVelocity);
+                if (id == 'm') {
+                    auto message = splitMsg(msg);
+                    // Slider Geometry Conversion
+                    auto sliderGeometry = SliderGeometry(message);
+                    auto fMessage = sliderGeometry.convert();
+                    fMessage.print();
+                    // MODBUS conversion
+                    auto modbus = Modbus(fMessage);
+                    //striker
+                    auto armID = HitDelay().hitDelay(message);
+                    //send commands
+                    cout << modbus.unicodeMessage << endl;
+                    serial.write(modbus.unicodeMessage);
+                } else {
+                    int i = 0;
+                    stringstream ssin(msg);
+                    string arr[2];
+                    while (ssin.good() && i < 2) {
+                        ssin >> arr[i];
+                        ++i;
+                    }
+                    cout << "ARM ID: " << arr[0] << endl;
+                    auto armID = stoi(arr[0]);
+
+                    auto vel = stoi(arr[1]);
+                    //For now as we have only 2 motors
+                    if (armID == 1) {
+                        cout << armID << " " << vel << endl;
+                        thread{strike, striker[0], delay, vel, 0}.detach();
+                    }
                 }
             }
         }
+//        sleep(5000);
+        striker[0].CloseDevice();
+        striker[1].CloseDevice();
 
     } catch (boost::system::system_error &e) {
         cout << "Error: " << e.what() << endl;
     }
-
-    for (int i = 0; i < striker.size(); i++) {
-        executeStriker[i].join();
-        striker[i].CloseDevice();
-    }
-
     return 0;
 }
 

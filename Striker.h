@@ -81,7 +81,7 @@ public:
 
     int moveToPosition(int position, unsigned int acc, bool absolute = 1);
 
-    short getCurrent(int m_velocity);
+    int getCurrent(int m_velocity);
 };
 
 

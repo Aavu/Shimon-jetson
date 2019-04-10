@@ -5,7 +5,6 @@
 #include <string>
 #include <queue>
 #include <iostream>
-#include "Globals.h"
 #include <math.h>
 #include <algorithm>
 
@@ -46,7 +45,7 @@ struct IAI_Message {
     int Xtarget;
     double acceleration;
     int Vmax;
-    unsigned int hitVelocity;
+    int hitVelocity;
     int arrivalTime;
 
     void print() {
@@ -61,7 +60,7 @@ struct TimedMessage {
     int Xtarget;
     double acceleration;
     int Vmax;
-    unsigned int hitVelocity;
+    int hitVelocity;
     double arrivalTime;
 
     void print() {

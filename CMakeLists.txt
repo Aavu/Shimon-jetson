@@ -4,11 +4,11 @@ project(Shimon)
 set(CMAKE_CXX_STANDARD 14)
 
 set(SOURCE_FILES main.cpp Serial.h SliderGeometry.cpp SliderGeometry.h DS.h Modbus.cpp Modbus.h
-        HitDelay.cpp HitDelay.h NotePosition.cpp NotePosition.h Definitions.h Striker.cpp Striker.h Arm.cpp Arm.h Globals.cpp Globals.h MoveCommand.cpp MoveCommand.h)
+        HitDelay.cpp HitDelay.h NotePosition.cpp NotePosition.h Definitions.h Striker.cpp Striker.h)
 
 add_executable(Shimon ${SOURCE_FILES})
 
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wall")
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} +g -Wall")
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Wall")
 
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
