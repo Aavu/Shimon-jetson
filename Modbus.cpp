@@ -5,8 +5,9 @@
 #include "Modbus.h"
 
 Modbus::Modbus(ModbusMessage msg) {
-    message = msg;
+    this->message = msg;
     convertToUnicodeString();
+    cout << "here" << endl;
 }
 
 void Modbus::servoAxis(bool turnOn) {

@@ -19,6 +19,7 @@
 #include <fstream>
 #include <thread>
 #include <iomanip>
+#include "Globals.h"
 
 using namespace std;
 
@@ -34,15 +35,13 @@ using namespace std;
 #define MMC_MAX_LOG_MSG_SIZE 512
 #endif
 
-enum StrikerModes {
-    Normal, Medium, Tremolo
-};
-
 class Striker {
+private:
+    bool playingTremolo = false;
+
 public:
     typedef void *HANDLE;
     typedef int BOOL;
-
     void *g_pKeyHandle = nullptr;
     unsigned short g_usNodeId = 1;
     string g_deviceName;
@@ -50,16 +49,13 @@ public:
     string g_interfaceName;
     string g_portName;
     unsigned int g_baudrate = 0;
-    unsigned int *p_pErrorCode = nullptr;
+//    unsigned int *p_pErrorCode;
 
     unsigned int velocity = 6000;
     short armID;
     bool motorID;
-    unsigned int ulErrorCode = 0;
-    int lResult = MMC_FAILED;
-    vector<unsigned int> midi_velocity;
-    vector<unsigned int> timeInterval;
-    StrikerModes strikerMode = Normal;
+//    unsigned int ulErrorCode = 0;
+    int lResult = MMC_SUCCESS;
 
 public:
     Striker(short armID, bool motorID);
@@ -93,10 +89,6 @@ public:
 
 private:
     int tremolo(int m_velocity);
-
-    typedef int (Striker::*tremoloFn)(int m_velocity);
-
-    tremoloFn pTremolo = &Striker::tremolo;
 
     int waitTillHit(int velocityThreshold = 20);
 };

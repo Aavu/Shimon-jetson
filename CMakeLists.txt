@@ -4,7 +4,7 @@ project(Shimon)
 set(CMAKE_CXX_STANDARD 14)
 
 set(SOURCE_FILES main.cpp Serial.h SliderGeometry.cpp SliderGeometry.h DS.h Modbus.cpp Modbus.h
-        HitDelay.cpp HitDelay.h NotePosition.cpp NotePosition.h Definitions.h Striker.cpp Striker.h)
+        HitDelay.cpp HitDelay.h NotePosition.cpp NotePosition.h Definitions.h Striker.cpp Striker.h Globals.h ArmController.cpp ArmController.h)
 
 add_executable(Shimon ${SOURCE_FILES})
 
