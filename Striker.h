@@ -49,16 +49,14 @@ public:
     string g_interfaceName;
     string g_portName;
     unsigned int g_baudrate = 0;
-//    unsigned int *p_pErrorCode;
 
     unsigned int velocity = 6000;
-    short armID;
-    bool motorID;
-//    unsigned int ulErrorCode = 0;
+    short ID;
     int lResult = MMC_SUCCESS;
+    bool dummy = false;
 
 public:
-    Striker(short armID, bool motorID);
+    Striker(short ID);
 
     void LogError(const string &functionName, int p_lResult, unsigned int p_ulErrorCode);
 
@@ -79,7 +77,7 @@ public:
 
     int setCurrent(short value);
 
-    int getID();
+    int getNodeID();
 
     int hit(unsigned int m_velocity, StrikerModes mode);
 

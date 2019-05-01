@@ -8,13 +8,13 @@
 #include <boost/asio.hpp>
 #include <boost/array.hpp>
 #include "HitDelay.h"
-#include "ArmController.h"
+//#include "ArmController.h"
 
 #define IP_ADDRESS "192.168.2.2"
 //#define IP_ADDRESS "127.0.0.1"
 #define UDP_PORT 7002
 
-//#define DATA_SIZE 32
+#define DATA_SIZE 32
 
 using namespace boost::asio;
 using namespace std;
@@ -75,10 +75,9 @@ int main() {
         Serial serial("/dev/IAIactuator", 230400);
         cout << "Successfully connected to Shimon's arms!" << endl;
 
-
         //Init Strikers...
         int lResult = MMC_SUCCESS;
-        vector<Striker> striker = {Striker(1, 1)};
+        vector<Striker> striker = {Striker(0), Striker(2), Striker(3), Striker(4)};
         if ((lResult = prepareStrikers(striker, lResult)) != MMC_SUCCESS) {
             return lResult;
         }
@@ -111,9 +110,6 @@ int main() {
                 break;
             } else if (msg == "home ") {
                 cout << "Homing..." << endl;
-//                if ((lResult = prepareStrikers(striker, lResult)) != MMC_SUCCESS) {
-//                    return lResult;
-//                }
                 auto modbus = Modbus();
                 modbus.servoAxis(true);
                 for (const string &i:modbus.ccMessage) {
@@ -139,10 +135,6 @@ int main() {
                     sleep(100);
                 }
 
-//                if ((lResult = prepareStrikers(striker, lResult)) != MMC_SUCCESS) {
-//                    return lResult;
-//                }
-
             } else if (msg == "off ") {
                 cout << "Switching servos off..." << endl;
                 auto modbus = Modbus();
@@ -152,13 +144,13 @@ int main() {
                     serial.write(i);
                     sleep(100);
                 }
-            } else if (msg == "tremoloOn ") {
-                cout << "Tremolo mode..." << endl;
-                strikerMode = Tremolo;
-                thread{strike, striker[0], 10, Tremolo}.detach();
-            } else if (msg == "tremoloOff ") {
-                cout << "Normal mode..." << endl;
-                strikerMode = Normal;
+//            } else if (msg == "tremoloOn ") {
+//                cout << "Tremolo mode..." << endl;
+//                strikerMode = Tremolo;
+//                thread{strike, striker[0], 10, Tremolo}.detach();
+//            } else if (msg == "tremoloOff ") {
+//                cout << "Normal mode..." << endl;
+//                strikerMode = Normal;
             } else {
                 if (id == 'm') {
                     auto message = splitMsg(msg);
@@ -179,18 +171,18 @@ int main() {
                         ssin >> arr[i];
                         ++i;
                     }
-                    cout << "ARM ID: " << arr[0] << endl;
-                    auto armID = stoi(arr[0]);
+                    auto ID = stoi(arr[0]);
                     auto vel = stoi(arr[1]);
-                    if (armID == 3) {
-                        cout << armID << " " << vel << endl;
-                        thread{strike, striker[0], vel, Normal}.detach();
+                    cout << "msg: " << ID << " " << vel << endl;
+                    if (ID > 0 && ID < 4) {
+                        thread{strike, striker[ID], vel, Normal}.detach();
                     }
                 }
             }
         }
-        striker[0].CloseDevice();
         striker[1].CloseDevice();
+        striker[2].CloseDevice();
+        striker[3].CloseDevice();
     } catch (boost::system::system_error &e) {
         cout << "Error: " << e.what() << endl;
     }
