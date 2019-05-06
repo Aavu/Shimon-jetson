@@ -4,17 +4,17 @@
 #include "Modbus.h"
 #include "NotePosition.h"
 #include "Serial.h"
-#include "Striker.h"
+//#include "Striker.h"
 #include <boost/asio.hpp>
 #include <boost/array.hpp>
 #include "HitDelay.h"
-#include "ArmController.h"
+//#include "ArmController.h"
 
 #define IP_ADDRESS "192.168.2.2"
 //#define IP_ADDRESS "127.0.0.1"
 #define UDP_PORT 7002
 
-//#define DATA_SIZE 32
+#define DATA_SIZE 32
 
 using namespace boost::asio;
 using namespace std;
@@ -44,27 +44,27 @@ IAI_Message splitMsg(const string &msg) {
     return message;
 }
 
-int prepareStrikers(vector<Striker> strikers, int &lResult) {
-    lResult = MMC_SUCCESS;
-    unsigned int errorCode = 0;
-    for (auto &s : strikers) {
-        if ((lResult = s.lResult) != MMC_SUCCESS) {
-            return lResult;
-        } else {
-            if ((lResult = s.Prepare()) != MMC_SUCCESS) {
-                s.LogError("Prepare", lResult, errorCode);
-                return lResult;
-            }
-        }
-    }
-    return lResult;
-}
+//int prepareStrikers(vector<Striker> strikers, int &lResult) {
+//    lResult = MMC_SUCCESS;
+//    unsigned int errorCode = 0;
+//    for (auto &s : strikers) {
+//        if ((lResult = s.lResult) != MMC_SUCCESS) {
+//            return lResult;
+//        } else {
+//            if ((lResult = s.Prepare()) != MMC_SUCCESS) {
+//                s.LogError("Prepare", lResult, errorCode);
+//                return lResult;
+//            }
+//        }
+//    }
+//    return lResult;
+//}
 
-void strike(Striker striker, unsigned int m_velocity, StrikerModes mode) {
-    striker.hit(m_velocity, mode);
-}
+//void strike(Striker striker, unsigned int m_velocity, StrikerModes mode) {
+//    striker.hit(m_velocity, mode);
+//}
 
-StrikerModes strikerMode = Normal;
+//StrikerModes strikerMode = Normal;
 
 int main() {
     boost::asio::io_context io_context;
@@ -75,16 +75,15 @@ int main() {
         Serial serial("/dev/IAIactuator", 230400);
         cout << "Successfully connected to Shimon's arms!" << endl;
 
-
         //Init Strikers...
-        int lResult = MMC_SUCCESS;
-        vector<Striker> striker = {Striker(1, 1)};
-        if ((lResult = prepareStrikers(striker, lResult)) != MMC_SUCCESS) {
-            return lResult;
-        }
+//        int lResult = MMC_SUCCESS;
+//        vector<Striker> striker = {Striker(1, 1)};
+//        if ((lResult = prepareStrikers(striker, lResult)) != MMC_SUCCESS) {
+//            return lResult;
+//        }
 
         cout << "Successfully connected to Strikers!" << endl;
-        strikerMode = Normal;
+//        strikerMode = Normal;
 
         while (true) {
             boost::array<char, DATA_SIZE> recv_buf;
@@ -111,9 +110,6 @@ int main() {
                 break;
             } else if (msg == "home ") {
                 cout << "Homing..." << endl;
-//                if ((lResult = prepareStrikers(striker, lResult)) != MMC_SUCCESS) {
-//                    return lResult;
-//                }
                 auto modbus = Modbus();
                 modbus.servoAxis(true);
                 for (const string &i:modbus.ccMessage) {
@@ -139,9 +135,6 @@ int main() {
                     sleep(100);
                 }
 
-//                if ((lResult = prepareStrikers(striker, lResult)) != MMC_SUCCESS) {
-//                    return lResult;
-//                }
 
             } else if (msg == "off ") {
                 cout << "Switching servos off..." << endl;
@@ -152,13 +145,13 @@ int main() {
                     serial.write(i);
                     sleep(100);
                 }
-            } else if (msg == "tremoloOn ") {
-                cout << "Tremolo mode..." << endl;
-                strikerMode = Tremolo;
-                thread{strike, striker[0], 10, Tremolo}.detach();
-            } else if (msg == "tremoloOff ") {
-                cout << "Normal mode..." << endl;
-                strikerMode = Normal;
+//            } else if (msg == "tremoloOn ") {
+//                cout << "Tremolo mode..." << endl;
+//                strikerMode = Tremolo;
+//                thread{strike, striker[0], 10, Tremolo}.detach();
+//            } else if (msg == "tremoloOff ") {
+//                cout << "Normal mode..." << endl;
+//                strikerMode = Normal;
             } else {
                 if (id == 'm') {
                     auto message = splitMsg(msg);
@@ -171,26 +164,35 @@ int main() {
                     //send commands
                     cout << modbus.unicodeMessage << endl;
                     serial.write(modbus.unicodeMessage);
-                } else {
-                    int i = 0;
-                    stringstream ssin(msg);
-                    string arr[2];
-                    while (ssin.good() && i < 2) {
-                        ssin >> arr[i];
-                        ++i;
-                    }
-                    cout << "ARM ID: " << arr[0] << endl;
-                    auto armID = stoi(arr[0]);
-                    auto vel = stoi(arr[1]);
-                    if (armID == 3) {
-                        cout << armID << " " << vel << endl;
-                        thread{strike, striker[0], vel, Normal}.detach();
-                    }
+//                } else {
+//                    int i = 0;
+//                    stringstream ssin(msg);
+//                    string arr[2];
+//                    while (ssin.good() && i < 2) {
+//                        ssin >> arr[i];
+//                        ++i;
+//                    }
+//                    int i = 0;
+//                    stringstream ssin(msg);
+//                    string arr[2];
+//                    while (ssin.good() && i < 2) {
+//                        ssin >> arr[i];
+//                        ++i;
+//                    }
+//                    int ID = arr[0];
+//                    int vel = arr[1];
+//                    cout << "ARM ID: " << arr[0] << endl;
+//                    auto armID = stoi(arr[0]);
+//                    auto vel = stoi(arr[1]);
+//                    if (armID == 3) {
+//                        cout << armID << " " << vel << endl;
+//                        thread{strike, striker[0], vel, Normal}.detach();
+//                    }
                 }
             }
         }
-        striker[0].CloseDevice();
-        striker[1].CloseDevice();
+//        striker[0].CloseDevice();
+//        striker[1].CloseDevice();
     } catch (boost::system::system_error &e) {
         cout << "Error: " << e.what() << endl;
     }

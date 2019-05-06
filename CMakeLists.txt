@@ -3,9 +3,11 @@ project(Shimon)
 
 set(CMAKE_CXX_STANDARD 14)
 
-set(SOURCE_FILES main.cpp Serial.h SliderGeometry.cpp SliderGeometry.h DS.h Modbus.cpp Modbus.h
-        HitDelay.cpp HitDelay.h NotePosition.cpp NotePosition.h Definitions.h Striker.cpp Striker.h Globals.h ArmController.cpp ArmController.h)
+#set(SOURCE_FILES main.cpp Serial.h SliderGeometry.cpp SliderGeometry.h DS.h Modbus.cpp Modbus.h
+#        HitDelay.cpp HitDelay.h NotePosition.cpp NotePosition.h Definitions.h Striker.cpp Striker.h Globals.h ArmController.cpp ArmController.h)
 
+set(SOURCE_FILES main.cpp Serial.h SliderGeometry.cpp SliderGeometry.h DS.h Modbus.cpp Modbus.h
+        HitDelay.cpp HitDelay.h NotePosition.cpp NotePosition.h Definitions.h Globals.h)
 add_executable(Shimon ${SOURCE_FILES})
 
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wall")
